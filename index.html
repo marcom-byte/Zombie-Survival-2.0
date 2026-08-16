@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Zombie Survivor 2.0</title>
+<style>
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b09;font-family:Arial,sans-serif}
+body{touch-action:none}canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.screen{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow-y:auto;padding:20px}
+#menu{background:radial-gradient(circle at 50% 35%,#304b35 0,#101910 40%,#050705 100%);color:white}
+.logo{font-size:clamp(38px,12vw,72px);font-weight:1000;line-height:.9;text-align:center;letter-spacing:2px;color:#b7ff9c;text-shadow:0 0 10px #39ff14,0 0 30px #1bff00,5px 6px 0 #071007;margin-bottom:10px}
+.version{color:#849a89;font-size:13px;letter-spacing:3px;margin-bottom:18px}
+.menuStats{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+.statBox{min-width:125px;padding:10px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px);text-align:center}
+.statBox span{display:block;font-size:11px;color:#8c9a90;text-transform:uppercase}.statBox strong{font-size:20px}.coins{color:#ffd83d}.levelColor{color:#63d7ff}
+.menuButton{width:min(300px,90vw);margin:6px;padding:15px;border:1px solid rgba(255,255,255,.2);border-radius:14px;color:white;font-size:17px;font-weight:900;letter-spacing:.5px;background:linear-gradient(#2e9d57,#166034);box-shadow:0 5px 0 #0c3520,0 10px 25px rgba(0,0,0,.3)}
+.menuButton:active{transform:translateY(4px);box-shadow:0 1px 0 #0c3520}.secondary{background:linear-gradient(#303936,#1a201d);box-shadow:0 5px 0 #101412}
+.panel{position:fixed;inset:0;z-index:120;display:none;overflow-y:auto;padding:16px 15px 40px;color:white;background:radial-gradient(circle at top,#25362a,#070907 65%);touch-action:pan-y}
+.panelInner{width:min(600px,100%);margin:auto}.backButton{position:sticky;top:0;z-index:5;padding:11px 18px;margin-bottom:15px;border:1px solid #4b554e;border-radius:12px;background:#151a17;color:white;font-weight:bold}
+.panelTitle{text-align:center;color:#a8ff8c;font-size:30px;margin:5px 0 8px}.panelCoins{text-align:center;color:#ffd83d;font-size:21px;font-weight:bold;margin-bottom:18px}
+.weapon{margin:12px 0;padding:17px;border-radius:17px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 25px rgba(0,0,0,.25)}
+.weapon.locked{opacity:.65;border-color:#633b3b}.weapon.equipped{border-color:#55e97d;box-shadow:0 0 18px rgba(55,255,100,.15)}
+.weaponTop{display:flex;justify-content:space-between;align-items:center}.weaponName{font-size:20px;font-weight:bold}.weaponLevel{color:#67d9ff;font-size:13px;font-weight:bold}
+.weaponInfo{color:#aeb9b1;font-size:13px;line-height:1.6;margin:8px 0}.weaponButton{width:100%;padding:12px;border:0;border-radius:10px;background:#dcae20;color:#111;font-weight:bold}.weaponButton:disabled{background:#424743;color:#929892}
+#hud{position:fixed;left:10px;top:10px;z-index:20;color:white;font-weight:bold;text-shadow:2px 2px 4px #000;pointer-events:none}.hudRow{margin:3px 0}.hpText{color:#ff6b6b}.scoreText{color:#ddd}.coinText{color:#ffd83d}.lvText{color:#65d8ff}
+.xpOuter{width:190px;height:8px;margin-top:4px;border-radius:10px;overflow:hidden;background:#182019;border:1px solid #48544b}#xpBar{width:0%;height:100%;background:linear-gradient(90deg,#39aaff,#6ff);box-shadow:0 0 8px #45c8ff}
+#weaponHud{position:fixed;right:10px;top:10px;z-index:20;text-align:right;color:white;font-weight:bold;text-shadow:2px 2px 4px #000;pointer-events:none}
+#powerHud{position:fixed;top:68px;left:10px;z-index:20;color:#fff;font-size:13px;font-weight:bold;text-shadow:2px 2px 4px #000;pointer-events:none}
+#bossUI{position:fixed;top:10px;left:50%;transform:translateX(-50%);width:min(72vw,520px);z-index:25;display:none;text-align:center;pointer-events:none}
+.bossTitle{color:#ff6666;font-size:14px;font-weight:1000;text-shadow:0 0 10px red,2px 2px 3px #000;margin-bottom:3px}.bossOuter{width:100%;height:18px;background:#260808;border:2px solid #eee;border-radius:8px;overflow:hidden}#bossBar{width:100%;height:100%;background:linear-gradient(90deg,#8b0000,#ff2b2b);box-shadow:0 0 12px red}
+#bossWarning{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:30;display:none;color:#ff4545;font-size:clamp(30px,9vw,60px);font-weight:1000;text-align:center;text-shadow:0 0 10px red,0 0 30px red,4px 4px 0 #190000;pointer-events:none}
+#joystick{position:fixed;left:18px;bottom:18px;width:120px;height:120px;z-index:40;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);box-shadow:inset 0 0 20px rgba(0,0,0,.3);touch-action:none}
+#stick{position:absolute;width:55px;height:55px;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:rgba(220,235,225,.45);border:2px solid rgba(255,255,255,.7);box-shadow:0 4px 15px rgba(0,0,0,.4);pointer-events:none}
+#shoot{position:fixed;right:20px;bottom:28px;z-index:40;width:100px;height:100px;border-radius:50%;border:3px solid rgba(255,255,255,.8);color:white;font-size:16px;font-weight:1000;background:radial-gradient(circle at 35% 30%,#ff7676,#a50e0e);box-shadow:0 0 20px rgba(255,30,30,.25),inset 0 -8px 15px rgba(0,0,0,.3);touch-action:none}
+#shoot:active{transform:scale(.94)}
+#levelUp{position:fixed;left:50%;top:43%;transform:translate(-50%,-50%) scale(.5);z-index:50;opacity:0;color:#ffe66b;font-size:clamp(35px,10vw,65px);font-weight:1000;text-align:center;text-shadow:0 0 12px #ff9800,0 0 30px #ff4d00,4px 4px 0 #241400;pointer-events:none}
+#levelUp.show{animation:levelUp 1.5s ease-out}@keyframes levelUp{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
+#gameOver{display:none;background:radial-gradient(circle,#341515,#070505 70%);color:white;text-align:center}.gameOverTitle{color:#ff4d4d;font-size:50px;font-weight:1000;text-shadow:0 0 20px red}
+#toast{position:fixed;left:50%;bottom:145px;transform:translateX(-50%);z-index:80;padding:10px 17px;border-radius:12px;background:rgba(10,15,11,.9);border:1px solid rgba(255,255,255,.15);color:white;font-weight:bold;opacity:0;pointer-events:none;transition:.2s}
+@media(max-height:620px){#joystick{width:100px;height:100px;bottom:10px}#shoot{width:82px;height:82px;bottom:15px}.logo{font-size:38px}.menuButton{padding:11px}}
+</style>
+</head>
+<body>
+<style>
+#audioToggle{position:fixed;top:12px;right:12px;z-index:99999;border:2px solid #fff;
+border-radius:14px;padding:12px 16px;min-width:145px;font-size:16px;font-weight:800;
+color:#fff;background:#198754;box-shadow:0 4px 14px rgba(0,0,0,.45);cursor:pointer;
+touch-action:manipulation}
+#audioToggle.off{background:#b02a37}
+</style>
+<button id="audioToggle" type="button" aria-pressed="true">🔊 AUDIO: ON</button>
+
+<script>
+(function(){
+  var audioEnabled=true;
+  document.getElementById("audioToggle").addEventListener("click",function(e){
+    e.stopPropagation();
+    audioEnabled=!audioEnabled;
+    this.textContent=audioEnabled?"🔊 AUDIO: ON":"🔇 AUDIO: OFF";
+    this.classList.toggle("off",!audioEnabled);
+    this.setAttribute("aria-pressed",String(audioEnabled));
+    if(window.setGameAudioEnabled) window.setGameAudioEnabled(audioEnabled);
+  });
+  window.isGameAudioEnabled=function(){return audioEnabled};
+})();
+</script>
+
+<canvas id="game"></canvas>
+
+<div id="menu" class="screen">
+  <div class="logo">ZOMBIE<br>SURVIVOR</div>
+  <div class="version">SURVIVAL 2.0 • AUDIO EDITION</div>
+  <div class="menuStats">
+    <div class="statBox"><span>Monete</span><strong class="coins">🪙 <b id="menuCoins">0</b></strong></div>
+    <div class="statBox"><span>Livello massimo</span><strong class="levelColor">⭐ <b id="menuLevel">1</b></strong></div>
+  </div>
+  <button class="menuButton" id="play">▶ GIOCA</button>
+  <button class="menuButton secondary" id="shopButton">🔫 NEGOZIO ARMI</button>
+  <button class="menuButton secondary" id="helpButton">❔ COME GIOCARE</button>
+</div>
+
+<div id="shop" class="panel"><div class="panelInner">
+  <button class="backButton" id="shopBack">← INDIETRO</button>
+  <div class="panelTitle">🔫 ARSENALE</div>
+  <div class="panelCoins">🪙 <span id="shopCoins">0</span></div>
+  <div id="weaponList"></div>
+</div></div>
+
+<div id="help" class="panel"><div class="panelInner">
+  <button class="backButton" id="helpBack">← INDIETRO</button>
+  <div class="panelTitle">❔ COME GIOCARE</div>
+  <div class="weapon">
+    <p>🕹️ Usa il joystick per muoverti.</p><p>🔫 Premi il pulsante rosso per sparare.</p>
+    <p>🧟 Elimina gli zombie per guadagnare monete.</p><p>🩹 Trova le bende per recuperare vita.</p>
+    <p>⚡ Raccogli i power-up.</p><p>⭐ Ogni livello richiede sempre più zombie.</p>
+    <p>🧟 Gli zombie diventano più resistenti.</p><p>👹 Ogni livello termina con un boss.</p>
+    <p>🚫 Durante il boss non spawnano zombie.</p><p>🏃 Ogni nuovo boss è più veloce.</p>
+    <p>🔒 Le armi potenti richiedono livelli alti.</p>
+    <p>🔊 Usa il pulsante AUDIO ON/OFF in alto per attivare o disattivare musica ed effetti.</p>
+  </div>
+</div></div>
+
+<div id="hud">
+  <div class="hudRow hpText">❤️ <span id="lives">3</span>/3</div>
+  <div class="hudRow scoreText">🧟 <span id="score">0</span></div>
+  <div class="hudRow coinText">🪙 <span id="coins">0</span></div>
+  <div class="hudRow lvText">⭐ LIVELLO <span id="level">1</span></div>
+  <div class="xpOuter"><div id="xpBar"></div></div>
+</div>
+<div id="weaponHud"></div><div id="powerHud"></div>
+<div id="bossUI"><div class="bossTitle">👹 BOSS — LIVELLO <span id="bossLevel">1</span></div><div class="bossOuter"><div id="bossBar"></div></div></div>
+<div id="bossWarning">⚠️ BOSS!<br>PREPARATI!</div>
+<div id="levelUp">⭐ LIVELLO <span id="newLevel">2</span> ⭐</div>
+<div id="joystick"><div id="stick"></div></div>
+<button id="shoot">🔫<br>SPARA</button>
+<div id="toast"></div>
+
+<div id="gameOver" class="screen">
+  <div class="gameOverTitle">GAME OVER</div>
+  <p>🧟 Zombie eliminati: <b id="finalScore">0</b></p>
+  <p>🪙 Monete: <b id="finalCoins">0</b></p>
+  <p>⭐ Livello: <b id="finalLevel">1</b></p>
+  <button class="menuButton" id="retry">🔄 RIGIOCA</button>
+  <button class="menuButton secondary" id="menuAgain">🏠 MENU</button>
+</div>
+
+<script>
+/* =========================================================
+   ZOMBIE SURVIVOR 2.0 - AUDIO EDITION + MENU MUSIC
+   Audio sintetizzato con Web Audio API, nessun file esterno.
+   ========================================================= */
+const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
+let audioCtx=null,masterGain=null,musicGain=null,musicTimer=null,musicStep=0,currentMusicMode="menu";
+function initAudio(){
+  if(audioCtx)return;
+  try{
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=audioCtx.createGain();masterGain.gain.value=.96;
+  const musicCompressor=audioCtx.createDynamicsCompressor();
+  musicCompressor.threshold.value=-8;
+  musicCompressor.knee.value=12;
+  musicCompressor.ratio.value=4;
+  musicCompressor.attack.value=.003;
+  musicCompressor.release.value=.18;
+  masterGain.connect(musicCompressor);
+  musicCompressor.connect(audioCtx.destination);
+    musicGain=audioCtx.createGain();musicGain.gain.value=.78;musicGain.connect(masterGain);
+  }catch(e){console.log("Audio non disponibile",e)}
+}
+function resumeAudio(){
+  if(!window.isGameAudioEnabled||!window.isGameAudioEnabled())return;
+  initAudio();
+  if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();
+  startMusic(currentMusicMode);
+}
+window.setGameAudioEnabled=function(enabled){
+  initAudio();
+  if(!audioCtx)return;
+  if(!enabled){ if(audioCtx.state!=="suspended")audioCtx.suspend(); }
+  else { audioCtx.resume(); startMusic(currentMusicMode); }
+};
+function soundTone(frequency,duration,type="sine",volume=.2,slide=0,when=0,dest=masterGain){
+  if(!audioCtx||!masterGain||!window.isGameAudioEnabled())return;
+  const now=audioCtx.currentTime+when,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type;o.frequency.setValueAtTime(Math.max(20,frequency),now);
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,frequency+slide),now+duration);
+  g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(volume,now+.008);
+  g.gain.exponentialRampToValueAtTime(.0001,now+duration);
+  o.connect(g);g.connect(dest||masterGain);o.start(now);o.stop(now+duration+.03);
+}
+function noise(duration=.12,volume=.15,filterFreq=2600){
+  if(!audioCtx||!masterGain||!window.isGameAudioEnabled())return;
+  const buffer=audioCtx.createBuffer(1,audioCtx.sampleRate*duration,audioCtx.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*(.8+Math.random()*.2);
+  const source=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),gain=audioCtx.createGain();
+  filter.type="lowpass";filter.frequency.value=filterFreq;gain.gain.setValueAtTime(volume,audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);
+  source.buffer=buffer;source.connect(filter).connect(gain).connect(masterGain);source.start();
+}
+function setMusicMode(mode){
+  if(mode!=="menu"&&mode!=="game") mode="menu";
+  currentMusicMode=mode;
+  if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+  musicStep=0;
+  if(audioCtx&&window.isGameAudioEnabled()) startMusic(mode);
+}
+function startMusic(mode=currentMusicMode){
+  currentMusicMode=mode;
+  if(!audioCtx||!musicGain||musicTimer||!window.isGameAudioEnabled())return;
+  musicStep=0;
+
+  // TRUE MENU THEME: melody + bass + dark pad, generated live with Web Audio.
+  const tempo = currentMusicMode==="menu" ? 68 : 104;
+  const stepMs = (60/tempo)*1000;
+
+  const menuMelody = [
+    293.66, 261.63, 220.00, 246.94,
+    293.66, 329.63, 246.94, 220.00,
+    196.00, 220.00, 246.94, 293.66,
+    261.63, 246.94, 220.00, 196.00
+  ];
+  const menuBass = [73.42,73.42,65.41,65.41,58.27,58.27,55.00,55.00];
+
+  musicTimer=setInterval(()=>{
+    if(!audioCtx||audioCtx.state!=="running"||!window.isGameAudioEnabled())return;
+
+    if(currentMusicMode==="menu"){
+      const i=musicStep%16;
+      const b=menuBass[Math.floor(i/2)%8];
+      const n=menuMelody[i];
+
+      // Deep bass pulse
+      soundTone(b,.72,"sine",.22,0,0,musicGain);
+
+      // Dark chord/pad every 4 beats
+      if(i%4===0){
+        soundTone(b*2,.95,"triangle",.075,0,0,musicGain);
+        soundTone(b*2*1.498,.90,"sawtooth",.025,-3,0,musicGain);
+      }
+
+      // Recognizable horror melody
+      soundTone(n,.42,"triangle",.095, i%5===0 ? -7 : 0, .03,musicGain);
+
+      // High eerie accent
+      if(i===3 || i===11){
+        soundTone(n*2,.18,"sine",.045,-18,.10,musicGain);
+      }
+
+      // Low rumble on bar changes
+      if(i===0 || i===8){
+        soundTone(36.7,.95,"sine",.12,-8,.02,musicGain);
+        noise(.32,.018,700);
+      }
+      musicStep++;
+    }else{
+      const notes=[55,65.41,73.42,65.41,49,58.27,65.41,58.27];
+      const root=notes[musicStep%notes.length];
+      soundTone(root,.38,"sine",.14,0,0,musicGain);
+      soundTone(root*2,.13,"triangle",.055,0,.02,musicGain);
+      if(musicStep%4===0){
+        soundTone(root*1.5,.24,"sine",.035,-8,0,musicGain);
+        noise(.08,.018,700);
+      }
+      if(musicStep%8===7) soundTone(110,.22,"sawtooth",.022,-35,0,musicGain);
+      musicStep++;
+    }
+  },stepMs);
+
+  // Play the first notes immediately instead of waiting for the first interval.
+  if(currentMusicMode==="menu"){
+    soundTone(73.42,.72,"sine",.22,0,0,musicGain);
+    soundTone(146.83,.55,"triangle",.07,0,.03,musicGain);
+    soundTone(293.66,.42,"triangle",.095,-7,.08,musicGain);
+  }
+}
+const sounds={
+ click(){soundTone(520,.06,"square",.11,80)},
+ shoot(w){
+   if(w==="shotgun"){noise(.22,.52,4200);soundTone(82,.20,"sawtooth",.34,-55);noise(.09,.22,900);return}
+   if(w==="plasma"){soundTone(170,.28,"sawtooth",.25,1100);soundTone(520,.20,"sine",.18,700);return}
+   if(w==="rifle"){noise(.12,.40,5200);soundTone(105,.13,"square",.30,-80);return}
+   if(w==="smg"){noise(.075,.30,4800);soundTone(145,.075,"square",.22,-100);return}
+   noise(.09,.32,5000);soundTone(125,.10,"square",.25,-95);soundTone(72,.08,"sine",.12,-25);
+ },
+ hit(){noise(.055,.16,2400);soundTone(105,.08,"square",.14,-55)},
+ zombieGroan(){
+   const f=75+Math.random()*35; soundTone(f,.42,"sawtooth",.16,-25); soundTone(f*.52,.55,"sine",.08,-12,.08); noise(.25,.045,900);
+ },
+ zombieDeath(){soundTone(115,.18,"sawtooth",.20,-70);soundTone(68,.42,"sine",.15,-38,.06);noise(.18,.13,1300)},
+ playerDamage(){noise(.12,.25,1600);soundTone(105,.30,"sawtooth",.25,-75);soundTone(52,.38,"square",.11,-25)},
+ pickup(){soundTone(500,.09,"sine",.16,250);soundTone(750,.13,"sine",.16,300,.07)},
+ coin(){soundTone(800,.07,"sine",.15,250);soundTone(1200,.12,"sine",.14,200,.07)},
+ levelUp(){soundTone(520,.12,"sine",.18,180);soundTone(700,.12,"sine",.18,220,.10);soundTone(950,.25,"sine",.22,300,.21)},
+ bossWarning(){soundTone(80,.55,"sawtooth",.28,-25);soundTone(52,.75,"sawtooth",.25,-18,.35);noise(.35,.12,700)},
+ bossHit(){soundTone(92,.10,"square",.17,-40);noise(.08,.16,1900)},
+ bossDeath(){noise(.75,.48,1800);soundTone(150,.55,"sawtooth",.30,-120);soundTone(62,.85,"sawtooth",.24,-42,.18)},
+ buy(){soundTone(600,.08,"sine",.16,180);soundTone(900,.15,"sine",.17,250,.09)},
+ error(){soundTone(180,.18,"square",.16,-80)},
+ gameOver(){soundTone(300,.25,"sawtooth",.22,-100);soundTone(180,.35,"sawtooth",.20,-90,.25);soundTone(90,.70,"sine",.22,-40,.60)}
+};
+
+let W=innerWidth,H=innerHeight,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener("resize",resize);resize();
+
+let coins=Number(localStorage.getItem("zs2Coins")||0),maxLevel=Number(localStorage.getItem("zs2Level")||1),owned;
+try{owned=JSON.parse(localStorage.getItem("zs2Weapons"))}catch(e){owned=null}
+if(!Array.isArray(owned))owned=["pistol"];if(!owned.includes("pistol"))owned.push("pistol");
+let equipped=localStorage.getItem("zs2Equipped")||"pistol";
+function save(){localStorage.setItem("zs2Coins",coins);localStorage.setItem("zs2Level",maxLevel);localStorage.setItem("zs2Weapons",JSON.stringify(owned));localStorage.setItem("zs2Equipped",equipped)}
+
+const weapons={
+ pistol:{name:"🔫 Pistola",damage:1,cooldown:270,bullets:1,spread:0,price:0,level:1},
+ smg:{name:"🔥 SMG",damage:1.5,cooldown:105,bullets:1,spread:.04,price:60,level:3},
+ shotgun:{name:"💥 Shotgun",damage:2.5,cooldown:520,bullets:5,spread:.4,price:130,level:6},
+ rifle:{name:"🎯 Fucile d'assalto",damage:5,cooldown:330,bullets:1,spread:0,price:250,level:10},
+ sniper:{name:"🎯 Cecchino",damage:16,cooldown:900,bullets:1,spread:0,price:420,level:15},
+ dual:{name:"🔫🔫 Doppia Pistola",damage:3,cooldown:320,bullets:2,spread:.13,price:550,level:20},
+ plasma:{name:"⚡ Plasma",damage:9,cooldown:260,bullets:1,spread:0,price:500,level:25},
+ minigun:{name:"🌀 Minigun",damage:2.2,cooldown:55,bullets:1,spread:.08,price:800,level:28},
+ rocket:{name:"🚀 Lanciarazzi",damage:22,cooldown:1100,bullets:1,spread:.02,price:1100,level:35},
+ flamethrower:{name:"🔥 Lanciafiamme",damage:1.8,cooldown:90,bullets:1,spread:.16,price:1350,level:42},
+ railgun:{name:"⚡ Railgun",damage:35,cooldown:1250,bullets:1,spread:0,price:1800,level:55}
+};
+
+const menu=document.getElementById("menu"),shop=document.getElementById("shop"),help=document.getElementById("help"),gameOver=document.getElementById("gameOver");
+const menuCoins=document.getElementById("menuCoins"),menuLevel=document.getElementById("menuLevel"),shopCoins=document.getElementById("shopCoins"),weaponList=document.getElementById("weaponList");
+const livesEl=document.getElementById("lives"),scoreEl=document.getElementById("score"),coinsEl=document.getElementById("coins"),levelEl=document.getElementById("level"),xpBar=document.getElementById("xpBar"),weaponHud=document.getElementById("weaponHud"),powerHud=document.getElementById("powerHud");
+const bossUI=document.getElementById("bossUI"),bossBar=document.getElementById("bossBar"),bossLevel=document.getElementById("bossLevel"),bossWarning=document.getElementById("bossWarning"),levelUp=document.getElementById("levelUp"),newLevel=document.getElementById("newLevel"),toast=document.getElementById("toast");
+
+function updateUI(){
+ menuCoins.textContent=coins;menuLevel.textContent=maxLevel;shopCoins.textContent=coins;coinsEl.textContent=coins;livesEl.textContent=lives;scoreEl.textContent=score;levelEl.textContent=level;
+ weaponHud.innerHTML=weapons[equipped].name+"<br><small>💥 "+weapons[equipped].damage+" DANNO</small>";
+}
+function showToast(text){toast.textContent=text;toast.style.opacity="1";clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.style.opacity="0",1300)}
+function levelScore(lvl){return lvl<=1?0:5*lvl*lvl-15*lvl+30}
+function updateXP(){const current=levelScore(level),next=levelScore(level+1),amount=score-current,needed=next-current;xpBar.style.width=Math.max(0,Math.min(100,amount/needed*100))+"%"}
+function checkLevel(){
+ while(score>=levelScore(level+1)){
+  level++;sounds.levelUp();
+  if(level>maxLevel){maxLevel=level;save()}
+  updateUI();newLevel.textContent=level;levelUp.classList.remove("show");void levelUp.offsetWidth;levelUp.classList.add("show");
+  setTimeout(()=>{if(gameRunning&&!boss)spawnBoss()},700);
+ }
+ updateXP();
+}
+
+let gameRunning=false,score=0,level=1,lives=3;
+let player={x:W/2,y:H/2,r:20,hit:0},zombies=[],bullets=[],particles=[],pickups=[],boss=null;
+let lastTime=0,lastSpawn=0,lastPickup=0,lastMedkit=0,lastShot=0,joyX=0,joyY=0,joyPointer=null;
+let rapid=false,speed=false,strong=false,shield=false,magnet=false;
+
+function particle(x,y,color,count=8){for(let i=0;i<count;i++)particles.push({x,y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:25+Math.random()*20,size:2+Math.random()*4,color})}
+function zombieHP(){return 3+(level-1)*1.5+Math.floor(level/5)}
+function zombieSpeed(){return .75+level*.045}
+function spawnZombie(){
+ if(boss||zombies.length>=24)return;
+ let x,y,side=Math.floor(Math.random()*4);
+ if(side===0){x=Math.random()*W;y=-50}else if(side===1){x=W+50;y=Math.random()*H}else if(side===2){x=Math.random()*W;y=H+50}else{x=-50;y=Math.random()*H}
+ const hp=zombieHP();zombies.push({x,y,r:20,hp,maxHP:hp,type:Math.random()<.15?"runner":"normal",hit:0});
+}
+function spawnPickup(type){
+ if(pickups.length>=2)return;
+ pickups.push({x:60+Math.random()*(W-120),y:100+Math.random()*Math.max(100,H-180),type,life:10000});
+}
+function activatePickup(type){
+ sounds.pickup();
+ if(type==="medkit"){
+  if(lives<3){lives++;updateUI();showToast("🩹 +1 VITA")}else{coins+=3;sounds.coin();showToast("🩹 VITA PIENA +3 🪙")}
+  save();return;
+ }
+ if(type==="speed"){speed=true;powerHud.textContent="⚡ SUPER VELOCITÀ";setTimeout(()=>{speed=false;powerHud.textContent=""},7000)}
+ if(type==="rapid"){rapid=true;powerHud.textContent="🔥 RAPID FIRE";setTimeout(()=>{rapid=false;powerHud.textContent=""},7000)}
+ if(type==="strong"){strong=true;powerHud.textContent="💥 PROIETTILI POTENTI";setTimeout(()=>{strong=false;powerHud.textContent=""},7000)}
+ if(type==="shield"){shield=true;powerHud.textContent="🛡️ SCUDO";setTimeout(()=>{shield=false;powerHud.textContent=""},7000)}
+ if(type==="magnet"){magnet=true;powerHud.textContent="🧲 MAGNETE";setTimeout(()=>{magnet=false;powerHud.textContent=""},7000)}
+}
+function spawnBoss(){
+ if(boss)return;zombies.length=0;
+ const hp=30+level*18+Math.floor(level*level*2),speedB=.65+level*.11,side=Math.floor(Math.random()*4);let x,y;
+ if(side===0){x=Math.random()*W;y=-100}else if(side===1){x=W+100;y=Math.random()*H}else if(side===2){x=Math.random()*W;y=H+100}else{x=-100;y=Math.random()*H}
+ boss={x,y,r:40,hp,maxHP:hp,speed:speedB};bossUI.style.display="block";bossLevel.textContent=level;bossWarning.style.display="block";sounds.bossWarning();particle(W/2,H/2,"#ff3333",40);
+ setTimeout(()=>bossWarning.style.display="none",1700);
+}
+function shoot(){
+ if(!gameRunning)return;resumeAudio();
+ const now=performance.now(),weapon=weapons[equipped];let cooldown=weapon.cooldown;if(rapid)cooldown*=.45;if(now-lastShot<cooldown)return;lastShot=now;sounds.shoot(equipped);
+ let target=null,distance=Infinity;
+ if(boss){target=boss;distance=Math.hypot(boss.x-player.x,boss.y-player.y)}else for(const z of zombies){const d=Math.hypot(z.x-player.x,z.y-player.y);if(d<distance){distance=d;target=z}}
+ if(!target)return;
+ for(let i=0;i<weapon.bullets;i++){
+  let dx=target.x-player.x,dy=target.y-player.y,d=Math.hypot(dx,dy);if(!d)continue;dx/=d;dy/=d;
+  if(weapon.spread){const a=Math.atan2(dy,dx)+(Math.random()-.5)*weapon.spread;dx=Math.cos(a);dy=Math.sin(a)}
+  bullets.push({x:player.x,y:player.y,vx:dx*10,vy:dy*10,damage:weapon.damage*(strong?2:1),life:70});
+ }
+ particle(player.x,player.y,"#ffd83d",3);
+}
+function damagePlayer(){
+ if(shield)return;lives--;sounds.playerDamage();player.hit=15;particle(player.x,player.y,"#ff3333",12);updateUI();if(lives<=0)endGame()
+}
+function killBoss(){
+ if(!boss)return;sounds.bossDeath();const reward=20+level*8;coins+=reward;score+=5;particle(boss.x,boss.y,"#ff2222",60);showToast("👹 BOSS SCONFITTO! +"+reward+" 🪙");boss=null;bossUI.style.display="none";updateUI();checkLevel();save()
+}
+
+function drawBackground(){
+ ctx.fillStyle="#0b120d";ctx.fillRect(0,0,W,H);ctx.strokeStyle="rgba(90,120,90,.08)";ctx.lineWidth=1;
+ for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+ for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ ctx.fillStyle="rgba(55,60,55,.35)";ctx.fillRect(0,H*.42,W,H*.16);ctx.fillRect(W*.42,0,W*.16,H);
+ ctx.strokeStyle="rgba(190,180,110,.14)";ctx.setLineDash([20,20]);ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(0,H*.5);ctx.lineTo(W,H*.5);ctx.stroke();ctx.beginPath();ctx.moveTo(W*.5,0);ctx.lineTo(W*.5,H);ctx.stroke();ctx.setLineDash([]);
+ for(let x=25;x<W;x+=170){if(x>W*.38&&x<W*.62)continue;ctx.fillStyle="rgba(30,42,32,.7)";ctx.fillRect(x,70,95,65);ctx.strokeStyle="rgba(100,130,105,.25)";ctx.strokeRect(x,70,95,65);ctx.fillStyle="rgba(150,190,120,.12)";ctx.fillRect(x+12,82,18,15);ctx.fillRect(x+42,82,18,15)}
+ const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.2,W/2,H/2,Math.max(W,H)*.7);g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.55)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H)
+}
+function drawPlayer(){
+ ctx.save();ctx.translate(player.x,player.y);
+ let dx=joyX,dy=joyY;if(Math.abs(dx)<.05&&Math.abs(dy)<.05){dx=1;dy=0}ctx.rotate(Math.atan2(dy,dx));
+ const moving=Math.abs(joyX)>.05||Math.abs(joyY)>.05,walk=moving?Math.sin(performance.now()/110)*4:0;
+ if(player.hit>0)ctx.globalAlpha=player.hit%4<2?.4:1;
+ ctx.fillStyle="rgba(0,0,0,.38)";ctx.beginPath();ctx.ellipse(0,20,22,8,0,0,Math.PI*2);ctx.fill();
+ if(shield){const pulse=29+Math.sin(performance.now()/120)*2;ctx.strokeStyle="rgba(80,190,255,.9)";ctx.lineWidth=4;ctx.shadowColor="#31bfff";ctx.shadowBlur=15;ctx.beginPath();ctx.arc(0,0,pulse,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
+ function leg(x,rot,c){ctx.save();ctx.translate(x,10);ctx.rotate(rot);ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(-5,0,9,18,4);ctx.fill();ctx.fillStyle="#111820";ctx.beginPath();ctx.ellipse(x>0?3:-2,18,9,5,0,0,Math.PI*2);ctx.fill();ctx.restore()}
+ leg(-7,moving?-walk*.035:0,"#26384b");leg(7,moving?walk*.035:0,"#31465b");
+ ctx.fillStyle="#173d2b";ctx.beginPath();ctx.roundRect(-19,-8,8,22,3);ctx.fill();
+ ctx.fillStyle="#2376a8";ctx.beginPath();ctx.roundRect(-15,-9,30,29,9);ctx.fill();ctx.strokeStyle="#9bdcff";ctx.lineWidth=2;ctx.stroke();
+ ctx.fillStyle="#d9e7ef";ctx.beginPath();ctx.roundRect(-4,-7,8,24,2);ctx.fill();ctx.fillStyle="#171b20";ctx.fillRect(-14,10,28,5);
+ function arm(x,rot){ctx.save();ctx.translate(x,-2);ctx.rotate(rot);ctx.fillStyle="#287eaf";ctx.beginPath();ctx.roundRect(-4,-4,8,20,4);ctx.fill();ctx.fillStyle="#d99d73";ctx.beginPath();ctx.arc(0,15,5,0,Math.PI*2);ctx.fill();ctx.restore()}
+ arm(-13,moving?-walk*.025:0);arm(13,moving?walk*.02:0);
+ ctx.fillStyle="#181b20";ctx.fillRect(13,9,22,6);ctx.fillStyle="#080a0c";ctx.fillRect(31,7,12,5);ctx.save();ctx.translate(20,13);ctx.rotate(.35);ctx.fillStyle="#292d32";ctx.fillRect(-3,0,7,10);ctx.restore();
+ if(performance.now()-lastShot<70){ctx.fillStyle="#ffe45b";ctx.shadowColor="#ff9d00";ctx.shadowBlur=15;ctx.beginPath();ctx.moveTo(43,9);ctx.lineTo(55,5);ctx.lineTo(48,12);ctx.lineTo(55,17);ctx.closePath();ctx.fill();ctx.shadowBlur=0}
+ ctx.fillStyle="#d99d73";ctx.fillRect(-5,-17,10,8);ctx.fillStyle="#e0a77b";ctx.beginPath();ctx.arc(0,-25,15,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#d2946b";ctx.beginPath();ctx.arc(-14,-24,4,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(14,-24,4,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#20252a";ctx.beginPath();ctx.arc(0,-29,15,Math.PI,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(-13,-31);ctx.quadraticCurveTo(-8,-42,-2,-34);ctx.quadraticCurveTo(3,-43,8,-34);ctx.quadraticCurveTo(13,-39,15,-29);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-6,-26,3.5,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(7,-26,3.5,0,Math.PI*2);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.arc(-5,-26,1.7,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(8,-26,1.7,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="#8b5145";ctx.lineWidth=2;ctx.beginPath();ctx.arc(3,-20,5,.15,Math.PI-.15);ctx.stroke();ctx.restore()
+}
+function drawZombie(z){
+ ctx.save();ctx.translate(z.x,z.y);
+ const scale=Math.max(.72,Math.min(1.05,z.r/18));ctx.scale(scale,scale);
+ const runner=z.type==="runner";
+ const ang=Math.atan2((player?player.y:z.y)-z.y,(player?player.x:z.x)-z.x);
+ ctx.rotate(ang+Math.PI/2);
+ const bob=Math.sin(performance.now()/120+(z.x+z.y)*.03)*(runner?2:1);
+ ctx.translate(0,bob);
+ // Ombra
+ ctx.save();ctx.rotate(-(ang+Math.PI/2));ctx.fillStyle="rgba(0,0,0,.38)";ctx.beginPath();ctx.ellipse(0,27,18,7,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ // Gambe: umanoidi, pantaloni strappati
+ ctx.lineCap="round";ctx.lineJoin="round";
+ ctx.strokeStyle=runner?"#25302b":"#30343a";ctx.lineWidth=7;
+ ctx.beginPath();ctx.moveTo(-6,11);ctx.lineTo(-9,28);ctx.moveTo(6,11);ctx.lineTo(9,28);ctx.stroke();
+ ctx.strokeStyle="#16191b";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-9,28);ctx.lineTo(-14,30);ctx.moveTo(9,28);ctx.lineTo(14,30);ctx.stroke();
+ // Corpo / maglietta o giacca lacera
+ ctx.fillStyle=runner?"#4e633c":"#38464a";ctx.beginPath();ctx.moveTo(-12,-8);ctx.quadraticCurveTo(-15,2,-10,14);ctx.quadraticCurveTo(0,18,10,14);ctx.quadraticCurveTo(15,2,12,-8);ctx.closePath();ctx.fill();
+ ctx.strokeStyle=runner?"#202a1a":"#202629";ctx.lineWidth=2;ctx.stroke();
+ // Strappi e macchie
+ ctx.strokeStyle="#151b1c";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-9,1);ctx.lineTo(-3,7);ctx.lineTo(-8,12);ctx.moveTo(7,-2);ctx.lineTo(2,5);ctx.lineTo(8,10);ctx.stroke();
+ ctx.fillStyle="#7b1f24";ctx.beginPath();ctx.arc(-6,3,2.5,0,Math.PI*2);ctx.arc(5,8,2,0,Math.PI*2);ctx.fill();
+ // Braccia cadenti, con mani e pelle visibile
+ ctx.strokeStyle="#64706a";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-10,-5);ctx.quadraticCurveTo(-18,1,-19,13);ctx.moveTo(10,-5);ctx.quadraticCurveTo(18,1,19,13);ctx.stroke();
+ ctx.fillStyle="#768078";ctx.beginPath();ctx.arc(-19,15,4,0,Math.PI*2);ctx.arc(19,15,4,0,Math.PI*2);ctx.fill();
+ // Collo
+ ctx.fillStyle="#7b8379";ctx.fillRect(-4,-13,8,7);
+ // Testa umana
+ ctx.fillStyle=runner?"#8f9b86":"#788278";ctx.beginPath();ctx.ellipse(0,-20,12,14,0,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle="#303a34";ctx.lineWidth=2;ctx.stroke();
+ // Capelli spettinati
+ ctx.fillStyle="#202323";ctx.beginPath();ctx.moveTo(-12,-21);ctx.quadraticCurveTo(-12,-34,-2,-35);ctx.quadraticCurveTo(8,-35,13,-25);ctx.lineTo(8,-20);ctx.lineTo(4,-28);ctx.lineTo(0,-21);ctx.lineTo(-4,-29);ctx.lineTo(-9,-20);ctx.closePath();ctx.fill();
+ // Occhi infossati + bagliore rosso
+ ctx.fillStyle="#171717";ctx.beginPath();ctx.ellipse(-5,-20,3,3.2,0,0,Math.PI*2);ctx.ellipse(5,-20,3,3.2,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#e83232";ctx.beginPath();ctx.arc(-5,-20,1.3,0,Math.PI*2);ctx.arc(5,-20,1.3,0,Math.PI*2);ctx.fill();
+ // Naso e bocca con denti
+ ctx.strokeStyle="#50584f";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,-19);ctx.lineTo(-2,-14);ctx.lineTo(2,-14);ctx.stroke();
+ ctx.fillStyle="#202020";ctx.beginPath();ctx.roundRect(-7,-12,14,6,3);ctx.fill();ctx.fillStyle="#ddd8c5";for(let x=-5;x<=4;x+=3)ctx.fillRect(x,-12,2,3);
+ // Ferite sul volto
+ ctx.strokeStyle="#6e2225";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,-7);ctx.lineTo(-5,-4);ctx.moveTo(8,-26);ctx.lineTo(11,-22);ctx.moveTo(7,-5);ctx.lineTo(10,-2);ctx.stroke();
+ // Barra vita
+ ctx.rotate(-(ang+Math.PI/2));
+ const width=44;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(-width/2,-47,width,5);ctx.fillStyle="#53d45e";ctx.fillRect(-width/2,-47,width*Math.max(0,z.hp/z.maxHP),5);
+ ctx.restore()
+}
+function drawBoss(){
+ if(!boss)return;ctx.save();ctx.translate(boss.x,boss.y);const pulse=48+Math.sin(performance.now()/150)*5;
+ ctx.fillStyle="rgba(255,0,0,.12)";ctx.beginPath();ctx.arc(0,0,pulse,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(0,0,0,.45)";ctx.beginPath();ctx.ellipse(0,30,45,13,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#741d25";ctx.beginPath();ctx.arc(0,0,boss.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#ff4242";ctx.lineWidth=5;ctx.stroke();ctx.fillStyle="#d7c9a4";
+ ctx.beginPath();ctx.moveTo(-25,-28);ctx.lineTo(-45,-58);ctx.lineTo(-17,-38);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(25,-28);ctx.lineTo(45,-58);ctx.lineTo(17,-38);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#ffdf00";ctx.shadowColor="#ff0000";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(-14,-8,7,0,Math.PI*2);ctx.arc(14,-8,7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ ctx.fillStyle="#170000";ctx.beginPath();ctx.roundRect(-23,10,46,18,7);ctx.fill();ctx.fillStyle="#fff";for(let i=-15;i<=15;i+=10)ctx.fillRect(i,10,5,8);ctx.restore()
+}
+function drawPickup(p){
+ ctx.save();ctx.translate(p.x,p.y);const pulse=1+Math.sin(performance.now()/180)*.08;ctx.scale(pulse,pulse);
+ let color="#fff",icon="";if(p.type==="medkit"){color="#ff4b4b";icon="+"}if(p.type==="speed"){color="#55d9ff";icon="⚡"}if(p.type==="rapid"){color="#ff8c32";icon="🔥"}if(p.type==="strong"){color="#ff3d3d";icon="💥"}if(p.type==="shield"){color="#70aaff";icon="🛡"}if(p.type==="magnet"){color="#d77cff";icon="🧲"}
+ ctx.shadowColor=color;ctx.shadowBlur=16;ctx.fillStyle="rgba(15,20,15,.9)";ctx.beginPath();ctx.roundRect(-22,-22,44,44,10);ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=color;ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(icon,0,1);ctx.restore()
+}
+function drawBullet(b){ctx.save();ctx.fillStyle=strong?"#ff642d":"#ffe45b";ctx.shadowColor=strong?"#ff2b00":"#fff000";ctx.shadowBlur=strong?12:7;ctx.beginPath();ctx.arc(b.x,b.y,strong?6:4,0,Math.PI*2);ctx.fill();ctx.restore()}
+function updateParticles(dt){
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;p.life-=dt;if(p.life<=0){particles.splice(i,1);continue}ctx.globalAlpha=Math.max(0,p.life/40);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size)}ctx.globalAlpha=1
+}
+
+function loop(time){
+ if(!gameRunning)return;const dt=Math.min(2,(time-lastTime)/16.67);lastTime=time;drawBackground();
+ const playerSpeed=speed?6.5:4.1;player.x+=joyX*playerSpeed*dt;player.y+=joyY*playerSpeed*dt;player.x=Math.max(28,Math.min(W-28,player.x));player.y=Math.max(42,Math.min(H-28,player.y));if(player.hit>0)player.hit-=dt;
+ const spawnDelay=Math.max(320,1150-level*38);if(!boss&&time-lastSpawn>spawnDelay){spawnZombie();lastSpawn=time}
+ if(!boss&&time-lastMedkit>8500){spawnPickup("medkit");lastMedkit=time}
+ if(!boss&&time-lastPickup>10000){const types=["speed","rapid","strong","shield","magnet"];spawnPickup(types[Math.floor(Math.random()*types.length)]);lastPickup=time}
+
+ for(let i=bullets.length-1;i>=0;i--){
+  const b=bullets[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+  if(b.life<=0||b.x<-30||b.x>W+30||b.y<-30||b.y>H+30){bullets.splice(i,1);continue}
+  let hit=false;
+  if(boss){const d=Math.hypot(b.x-boss.x,b.y-boss.y);if(d<boss.r+7){boss.hp-=b.damage;sounds.bossHit();particle(b.x,b.y,"#ff4d4d",5);bullets.splice(i,1);hit=true;bossBar.style.width=Math.max(0,boss.hp/boss.maxHP*100)+"%";if(boss.hp<=0)killBoss()}}
+  if(!hit&&!boss){for(let j=zombies.length-1;j>=0;j--){const z=zombies[j],d=Math.hypot(b.x-z.x,b.y-z.y);if(d<z.r+6){z.hp-=b.damage;z.hit=5;sounds.hit();particle(b.x,b.y,"#aaff7a",4);bullets.splice(i,1);hit=true;if(z.hp<=0){sounds.zombieDeath();particle(z.x,z.y,"#ff5555",13);zombies.splice(j,1);score++;coins+=1+Math.floor(level/6);sounds.coin();updateUI();checkLevel();save()}break}}}
+ }
+ for(let i=zombies.length-1;i>=0;i--){
+  const z=zombies[i],dx=player.x-z.x,dy=player.y-z.y,d=Math.hypot(dx,dy),sm=z.type==="runner"?1.65:1;
+  if(!z.groanTimer)z.groanTimer=900+Math.random()*2500;
+  z.groanTimer-=dt*16.67;
+  if(z.groanTimer<=0&&d<420){sounds.zombieGroan();z.groanTimer=1800+Math.random()*3000}
+  if(d>1){z.x+=dx/d*zombieSpeed()*sm*dt;z.y+=dy/d*zombieSpeed()*sm*dt}if(z.hit>0)z.hit-=dt;
+  if(d<z.r+player.r){if(shield){particle(z.x,z.y,"#62baff",8);zombies.splice(i,1);score++;coins++;sounds.coin();updateUI();checkLevel();save()}else{zombies.splice(i,1);damagePlayer()}}
+ }
+ if(boss){const dx=player.x-boss.x,dy=player.y-boss.y,d=Math.hypot(dx,dy);if(d>1){boss.x+=dx/d*boss.speed*dt;boss.y+=dy/d*boss.speed*dt}if(d<boss.r+player.r&&!shield&&Math.random()<.025*dt)damagePlayer()}
+ for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];p.life-=dt;if(p.life<=0){pickups.splice(i,1);continue}
+  if(magnet){const dx=player.x-p.x,dy=player.y-p.y,d=Math.hypot(dx,dy);if(d<230&&d>1){p.x+=dx/d*4*dt;p.y+=dy/d*4*dt}}
+  if(Math.hypot(player.x-p.x,player.y-p.y)<40){activatePickup(p.type);particle(p.x,p.y,"#fff",15);pickups.splice(i,1)}
+ }
+ for(const p of pickups)drawPickup(p);for(const b of bullets)drawBullet(b);for(const z of zombies)drawZombie(z);drawBoss();drawPlayer();updateParticles(dt);requestAnimationFrame(loop)
+}
+
+function startGame(){
+ setMusicMode("game");
+ resumeAudio();sounds.click();menu.style.display="none";shop.style.display="none";help.style.display="none";gameOver.style.display="none";gameRunning=true;score=0;level=1;lives=3;
+ player.x=W/2;player.y=H/2;player.hit=0;zombies=[];bullets=[];particles=[];pickups=[];boss=null;bossUI.style.display="none";joyX=0;joyY=0;lastTime=performance.now();lastSpawn=lastTime;lastMedkit=lastTime;lastPickup=lastTime;lastShot=0;updateUI();updateXP();requestAnimationFrame(loop)
+}
+function endGame(){gameRunning=false;setMusicMode("game");resumeAudio();sounds.gameOver();document.getElementById("finalScore").textContent=score;document.getElementById("finalCoins").textContent=coins;document.getElementById("finalLevel").textContent=level;gameOver.style.display="flex";save()}
+
+function renderShop(){
+ weaponList.innerHTML="";
+ for(const id in weapons){const w=weapons[id],has=owned.includes(id),unlocked=maxLevel>=w.level,card=document.createElement("div");card.className="weapon";if(!unlocked)card.classList.add("locked");if(equipped===id)card.classList.add("equipped");
+ let text,disabled=false;if(!unlocked){text="🔒 LIVELLO "+w.level+" RICHIESTO";disabled=true}else if(equipped===id){text="✅ EQUIPAGGIATA";disabled=true}else if(has)text="EQUIPAGGIA";else text="COMPRA 🪙 "+w.price;
+ card.innerHTML=`<div class="weaponTop"><div class="weaponName">${w.name}</div><div class="weaponLevel">⭐ LV. ${w.level}</div></div><div class="weaponInfo">💥 Danno: ${w.damage}<br>🔫 Proiettili: ${w.bullets}<br>⏱️ Velocità: ${w.cooldown}ms</div><button class="weaponButton" ${disabled?"disabled":""}>${text}</button>`;
+ const button=card.querySelector("button");if(!disabled)button.addEventListener("click",()=>{resumeAudio();if(has){sounds.click();equipped=id;save();renderShop();updateUI();return}if(coins>=w.price){sounds.buy();coins-=w.price;owned.push(id);equipped=id;save();renderShop();updateUI();showToast(w.name+" acquistata!")}else{sounds.error();showToast("❌ Monete insufficienti")}});weaponList.appendChild(card)}
+}
+
+document.getElementById("play").addEventListener("click",startGame);
+document.getElementById("shopButton").addEventListener("click",()=>{setMusicMode("menu");resumeAudio();sounds.click();menu.style.display="none";shop.style.display="block";renderShop()});
+document.getElementById("helpButton").addEventListener("click",()=>{setMusicMode("menu");resumeAudio();sounds.click();menu.style.display="none";help.style.display="block"});
+document.getElementById("shopBack").addEventListener("click",()=>{setMusicMode("menu");resumeAudio();sounds.click();shop.style.display="none";menu.style.display="flex"});
+document.getElementById("helpBack").addEventListener("click",()=>{setMusicMode("menu");resumeAudio();sounds.click();help.style.display="none";menu.style.display="flex"});
+document.getElementById("retry").addEventListener("click",startGame);
+document.getElementById("menuAgain").addEventListener("click",()=>{setMusicMode("menu");resumeAudio();sounds.click();gameOver.style.display="none";menu.style.display="flex";updateUI()});
+
+function joystickMove(x,y){
+ const r=document.getElementById("joystick").getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=x-cx,dy=y-cy,max=43,d=Math.hypot(dx,dy);if(d>max){dx=dx/d*max;dy=dy/d*max}joyX=dx/max;joyY=dy/max;document.getElementById("stick").style.left=`calc(50% + ${dx}px)`;document.getElementById("stick").style.top=`calc(50% + ${dy}px)`
+}
+const joy=document.getElementById("joystick");
+joy.addEventListener("pointerdown",e=>{if(!gameRunning)return;e.preventDefault();joyPointer=e.pointerId;joy.setPointerCapture(e.pointerId);joystickMove(e.clientX,e.clientY)});
+joy.addEventListener("pointermove",e=>{if(e.pointerId!==joyPointer)return;e.preventDefault();joystickMove(e.clientX,e.clientY)});
+function joyRelease(){joyPointer=null;joyX=0;joyY=0;document.getElementById("stick").style.left="50%";document.getElementById("stick").style.top="50%"}
+joy.addEventListener("pointerup",joyRelease);joy.addEventListener("pointercancel",joyRelease);
+document.getElementById("shoot").addEventListener("pointerdown",e=>{e.preventDefault();resumeAudio();shoot()});
+const keys={};
+addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if(e.key===" "){e.preventDefault();resumeAudio();shoot()}});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+setInterval(()=>{if(!gameRunning)return;let x=0,y=0;if(keys["w"]||keys["arrowup"])y--;if(keys["s"]||keys["arrowdown"])y++;if(keys["a"]||keys["arrowleft"])x--;if(keys["d"]||keys["arrowright"])x++;if(x||y){const d=Math.hypot(x,y);joyX=x/d;joyY=y/d}else if(joyPointer===null){joyX=0;joyY=0}},16);
+updateUI();renderShop();
+</script>
+
+<script>
+/* Bridge menu music to common audio controls in the game */
+document.addEventListener("DOMContentLoaded", () => {
+  const candidates = [
+    ...document.querySelectorAll("#audioBtn,#audioToggle,#soundBtn,#muteBtn,[data-audio-toggle]")
+  ];
+
+  candidates.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const txt = (btn.textContent || "").toLowerCase();
+      const off = txt.includes("off") || txt.includes("muted") || txt.includes("🔇");
+      MenuMusic.setEnabled(!off);
+      if (!off) setTimeout(() => MenuMusic.start(), 80);
+    });
+  });
+});
+</script>
+
+
+<script>
+/* Guaranteed menu-music unlock: browser audio starts on the first user gesture. */
+(function(){
+  let unlocked=false;
+  function unlockMenuAudio(e){
+    if(unlocked) return;
+    const menu=document.getElementById("menu");
+    const gameOver=document.getElementById("gameOver");
+    const game=document.getElementById("game");
+    if(menu && getComputedStyle(menu).display!=="none"){
+      if(window.isGameAudioEnabled && window.isGameAudioEnabled()){
+        unlocked=true;
+        if(window.setGameAudioEnabled) window.setGameAudioEnabled(true);
+        if(typeof resumeAudio==="function") resumeAudio();
+      }
+    }
+  }
+  document.addEventListener("pointerdown",unlockMenuAudio,true);
+  document.addEventListener("touchstart",unlockMenuAudio,true);
+  document.addEventListener("click",unlockMenuAudio,true);
+})();
+</script>
+
+<script>
+/* HIGH-VOLUME MENU MUSIC BOOST */
+(function(){
+  function boostMenuMusic(){
+    try{
+      if(!window.audioCtx || !window.musicGain) return;
+      if(window.isGameAudioEnabled && !window.isGameAudioEnabled()) return;
+      const t=window.audioCtx.currentTime;
+      window.musicGain.gain.cancelScheduledValues(t);
+      window.musicGain.gain.setValueAtTime(Math.max(window.musicGain.gain.value,0.0001),t);
+      window.musicGain.gain.linearRampToValueAtTime(1.08,t+0.35);
+    }catch(e){}
+  }
+  document.addEventListener("pointerdown",boostMenuMusic,true);
+  document.addEventListener("touchstart",boostMenuMusic,true);
+  document.addEventListener("click",boostMenuMusic,true);
+})();
+</script>
+
+</body>
+</html>
