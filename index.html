@@ -83,7 +83,7 @@ touch-action:manipulation}
 
 <div id="shop" class="panel"><div class="panelInner">
   <button class="backButton" id="shopBack">← INDIETRO</button>
-  <div class="panelTitle">🔫 ARSENALE</div>
+  <div class="panelTitle">ARSENALE</div>
   <div class="panelCoins">🪙 <span id="shopCoins">0</span></div>
   <div id="weaponList"></div>
 </div></div>
@@ -303,17 +303,17 @@ let equipped=localStorage.getItem("zs2Equipped")||"pistol";
 function save(){localStorage.setItem("zs2Coins",coins);localStorage.setItem("zs2Level",maxLevel);localStorage.setItem("zs2Weapons",JSON.stringify(owned));localStorage.setItem("zs2Equipped",equipped)}
 
 const weapons={
- pistol:{name:"🔫 Pistola",damage:1,cooldown:270,bullets:1,spread:0,price:0,level:1},
- smg:{name:"🔥 SMG",damage:1.5,cooldown:105,bullets:1,spread:.04,price:60,level:3},
- shotgun:{name:"💥 Shotgun",damage:2.5,cooldown:520,bullets:5,spread:.4,price:130,level:6},
- rifle:{name:"🎯 Fucile d'assalto",damage:5,cooldown:330,bullets:1,spread:0,price:250,level:10},
- sniper:{name:"🎯 Cecchino",damage:16,cooldown:900,bullets:1,spread:0,price:420,level:15},
- dual:{name:"🔫🔫 Doppia Pistola",damage:3,cooldown:320,bullets:2,spread:.13,price:550,level:20},
- plasma:{name:"⚡ Plasma",damage:9,cooldown:260,bullets:1,spread:0,price:500,level:25},
- minigun:{name:"🌀 Minigun",damage:2.2,cooldown:55,bullets:1,spread:.08,price:800,level:28},
- rocket:{name:"🚀 Lanciarazzi",damage:22,cooldown:1100,bullets:1,spread:.02,price:1100,level:35},
- flamethrower:{name:"🔥 Lanciafiamme",damage:1.8,cooldown:90,bullets:1,spread:.16,price:1350,level:42},
- railgun:{name:"⚡ Railgun",damage:35,cooldown:1250,bullets:1,spread:0,price:1800,level:55}
+ pistol:{name:"PISTOLA",damage:1,cooldown:270,bullets:1,spread:0,price:0,level:1},
+ smg:{name:"SMG",damage:1.5,cooldown:105,bullets:1,spread:.04,price:60,level:3},
+ shotgun:{name:"SHOTGUN",damage:2.5,cooldown:520,bullets:5,spread:.4,price:130,level:6},
+ rifle:{name:"FUCILE D'ASSALTO",damage:5,cooldown:330,bullets:1,spread:0,price:250,level:10},
+ sniper:{name:"CECCHINO",damage:16,cooldown:900,bullets:1,spread:0,price:420,level:15},
+ dual:{name:"DOPPIA PISTOLA",damage:3,cooldown:320,bullets:2,spread:.13,price:550,level:20},
+ plasma:{name:"PLASMAGUN",damage:9,cooldown:260,bullets:1,spread:0,price:500,level:25},
+ minigun:{name:"MINIGUN",damage:2.2,cooldown:55,bullets:1,spread:.08,price:800,level:28},
+ rocket:{name:"LANCIARAZZI",damage:22,cooldown:1100,bullets:1,spread:.02,price:1100,level:35},
+ flamethrower:{name:"LANCIAFIAMME",damage:1.8,cooldown:90,bullets:1,spread:.16,price:1350,level:42},
+ railgun:{name:"RAILGUN",damage:35,cooldown:1250,bullets:1,spread:0,price:1800,level:55}
 };
 
 const menu=document.getElementById("menu"),shop=document.getElementById("shop"),help=document.getElementById("help"),gameOver=document.getElementById("gameOver");
