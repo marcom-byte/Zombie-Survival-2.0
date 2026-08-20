@@ -122,8 +122,8 @@ touch-action:manipulation}
   <p>🧟 Zombie eliminati: <b id="finalScore">0</b></p>
   <p>🪙 Monete: <b id="finalCoins">0</b></p>
   <p>⭐ Livello: <b id="finalLevel">1</b></p>
-  <button class="menuButton" id="retry">🔄 RIGIOCA</button>
-  <button class="menuButton secondary" id="menuAgain">🏠 MENU</button>
+  <button class="menuButton" id="retry">RIGIOCA</button>
+  <button class="menuButton secondary" id="menuAgain">MENU</button>
 </div>
 
 <script>
@@ -133,6 +133,7 @@ touch-action:manipulation}
    ========================================================= */
 const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
 let audioCtx=null,masterGain=null,musicGain=null,musicTimer=null,musicStep=0,currentMusicMode="menu";
+let zombieSound=null;
 function initAudio(){
   if(audioCtx)return;
   try{
@@ -147,6 +148,9 @@ function initAudio(){
   masterGain.connect(musicCompressor);
   musicCompressor.connect(audioCtx.destination);
     musicGain=audioCtx.createGain();musicGain.gain.value=.78;musicGain.connect(masterGain);
+    zombieSound=new Audio("Zombie_Sound.mp3");
+    zombieSound.preload="auto";
+    zombieSound.volume=.82;
   }catch(e){console.log("Audio non disponibile",e)}
 }
 function resumeAudio(){
@@ -158,8 +162,13 @@ function resumeAudio(){
 window.setGameAudioEnabled=function(enabled){
   initAudio();
   if(!audioCtx)return;
-  if(!enabled){ if(audioCtx.state!=="suspended")audioCtx.suspend(); }
-  else { audioCtx.resume(); startMusic(currentMusicMode); }
+  if(!enabled){
+    if(audioCtx.state!=="suspended")audioCtx.suspend();
+    if(zombieSound){ zombieSound.pause(); zombieSound.currentTime=0; }
+  } else {
+    audioCtx.resume();
+    startMusic(currentMusicMode);
+  }
 };
 function soundTone(frequency,duration,type="sine",volume=.2,slide=0,when=0,dest=masterGain){
   if(!audioCtx||!masterGain||!window.isGameAudioEnabled())return;
@@ -265,7 +274,10 @@ const sounds={
  },
  hit(){noise(.055,.16,2400);soundTone(105,.08,"square",.14,-55)},
  zombieGroan(){
-   const f=75+Math.random()*35; soundTone(f,.42,"sawtooth",.30,-25); soundTone(f*.52,.55,"sine",.18,-12,.08); noise(.25,.045,900);
+   if(!window.isGameAudioEnabled()||!zombieSound)return;
+   const sound=zombieSound.cloneNode();
+   sound.volume=.82;
+   sound.play().catch(()=>{});
  },
  zombieDeath(){soundTone(115,.18,"sawtooth",.20,-70);soundTone(68,.42,"sine",.15,-38,.06);noise(.18,.13,1300)},
  playerDamage(){noise(.12,.25,1600);soundTone(105,.30,"sawtooth",.25,-75);soundTone(52,.38,"square",.11,-25)},
