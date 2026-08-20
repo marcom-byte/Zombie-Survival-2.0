@@ -395,7 +395,8 @@ function drawBackground(){
 }
 function drawPlayer(){
  ctx.save();ctx.translate(player.x,player.y);
- let dx=joyX,dy=joyY;if(Math.abs(dx)<.05&&Math.abs(dy)<.05){dx=1;dy=0}ctx.rotate(Math.atan2(dy,dx));
+ // Player sempre rivolto nella stessa direzione
+// Nessuna rotazione in base al movimento.
  const moving=Math.abs(joyX)>.05||Math.abs(joyY)>.05,walk=moving?Math.sin(performance.now()/110)*4:0;
  if(player.hit>0)ctx.globalAlpha=player.hit%4<2?.4:1;
  ctx.fillStyle="rgba(0,0,0,.38)";ctx.beginPath();ctx.ellipse(0,20,22,8,0,0,Math.PI*2);ctx.fill();
@@ -419,8 +420,8 @@ function drawZombie(z){
  ctx.save();ctx.translate(z.x,z.y);
  const scale=Math.max(.72,Math.min(1.05,z.r/18));ctx.scale(scale,scale);
  const runner=z.type==="runner";
- const ang=Math.atan2((player?player.y:z.y)-z.y,(player?player.x:z.x)-z.x);
- ctx.rotate(ang+Math.PI/2);
+// ZOMBIE BLOCCATO: non ruota mai
+const ang=0;
  const bob=Math.sin(performance.now()/120+(z.x+z.y)*.03)*(runner?2:1);
  ctx.translate(0,bob);
  // Ombra
@@ -454,9 +455,8 @@ function drawZombie(z){
  ctx.fillStyle="#202020";ctx.beginPath();ctx.roundRect(-7,-12,14,6,3);ctx.fill();ctx.fillStyle="#ddd8c5";for(let x=-5;x<=4;x+=3)ctx.fillRect(x,-12,2,3);
  // Ferite sul volto
  ctx.strokeStyle="#6e2225";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,-7);ctx.lineTo(-5,-4);ctx.moveTo(8,-26);ctx.lineTo(11,-22);ctx.moveTo(7,-5);ctx.lineTo(10,-2);ctx.stroke();
- // Barra vita
- ctx.rotate(-(ang+Math.PI/2));
- const width=44;ctx.fillStyle="rgba(0,0,0,.65)";ctx.fillRect(-width/2,-47,width,5);ctx.fillStyle="#53d45e";ctx.fillRect(-width/2,-47,width*Math.max(0,z.hp/z.maxHP),5);
+// Barra vita
+const width=44;
  ctx.restore()
 }
 function drawBoss(){
