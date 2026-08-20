@@ -265,7 +265,7 @@ const sounds={
  },
  hit(){noise(.055,.16,2400);soundTone(105,.08,"square",.14,-55)},
  zombieGroan(){
-   const f=75+Math.random()*35; soundTone(f,.42,"sawtooth",.16,-25); soundTone(f*.52,.55,"sine",.08,-12,.08); noise(.25,.045,900);
+   const f=75+Math.random()*35; soundTone(f,.42,"sawtooth",.30,-25); soundTone(f*.52,.55,"sine",.18,-12,.08); noise(.25,.045,900);
  },
  zombieDeath(){soundTone(115,.18,"sawtooth",.20,-70);soundTone(68,.42,"sine",.15,-38,.06);noise(.18,.13,1300)},
  playerDamage(){noise(.12,.25,1600);soundTone(105,.30,"sawtooth",.25,-75);soundTone(52,.38,"square",.11,-25)},
@@ -495,7 +495,7 @@ function loop(time){
   const z=zombies[i],dx=player.x-z.x,dy=player.y-z.y,d=Math.hypot(dx,dy),sm=z.type==="runner"?1.65:1;
   if(!z.groanTimer)z.groanTimer=900+Math.random()*2500;
   z.groanTimer-=dt*16.67;
-  if(z.groanTimer<=0&&d<420){sounds.zombieGroan();z.groanTimer=1800+Math.random()*3000}
+  if(z.groanTimer<=0&&d<420){sounds.zombieGroan();z.groanTimer=1000+Math.random()*2000}
   if(d>1){z.x+=dx/d*zombieSpeed()*sm*dt;z.y+=dy/d*zombieSpeed()*sm*dt}if(z.hit>0)z.hit-=dt;
   if(d<z.r+player.r){if(shield){particle(z.x,z.y,"#62baff",8);zombies.splice(i,1);score++;coins++;sounds.coin();updateUI();checkLevel();save()}else{zombies.splice(i,1);damagePlayer()}}
  }
