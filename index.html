@@ -347,7 +347,7 @@ function spawnPickup(type){
 function activatePickup(type){
  sounds.pickup();
  if(type==="medkit"){
-  if(lives<3){lives++;updateUI();showToast("🩹 +1 VITA")}else{coins+=3;sounds.coin();showToast("🩹 VITA PIENA +3 🪙")}
+  if(lives<3){lives++;updateUI();showToast("🩹 +1 VITA")}else{coins+=3;sounds.coin();showToast("VITA PIENA +3 🪙")}
   save();return;
  }
  if(type==="speed"){speed=true;powerHud.textContent="⚡ SUPER VELOCITÀ";setTimeout(()=>{speed=false;powerHud.textContent=""},7000)}
