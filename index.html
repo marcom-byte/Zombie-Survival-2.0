@@ -392,7 +392,7 @@ function damagePlayer(){
  if(shield)return;lives--;sounds.playerDamage();player.hit=15;particle(player.x,player.y,"#ff3333",12);updateUI();if(lives<=0)endGame()
 }
 function killBoss(){
- if(!boss)return;sounds.bossDeath();const reward=20+level*8;coins+=reward;score+=5;particle(boss.x,boss.y,"#ff2222",60);showToast("👹 BOSS SCONFITTO! +"+reward+"🪙");boss=null;bossUI.style.display="none";updateUI();save()
+ if(!boss)return;sounds.bossDeath();const reward=20+level*8;coins+=reward;particle(boss.x,boss.y,"#ff2222",60);showToast("👹 BOSS SCONFITTO! +"+reward+"🪙");boss=null;bossUI.style.display="none";updateUI();save()
 }
 
 function drawBackground(){
