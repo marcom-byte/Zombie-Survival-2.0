@@ -392,7 +392,7 @@ function damagePlayer(){
  if(shield)return;lives--;sounds.playerDamage();player.hit=15;particle(player.x,player.y,"#ff3333",12);updateUI();if(lives<=0)endGame()
 }
 function killBoss(){
- if(!boss)return;sounds.bossDeath();const reward=20+level*8;coins+=reward;score+=5;particle(boss.x,boss.y,"#ff2222",60);showToast("👹 BOSS SCONFITTO! +"+reward+" 🪙");boss=null;bossUI.style.display="none";updateUI();checkLevel();save()
+ if(!boss)return;sounds.bossDeath();const reward=20+level*8;coins+=reward;score+=5;particle(boss.x,boss.y,"#ff2222",60);showToast("👹 BOSS SCONFITTO! +"+reward+"🪙");boss=null;bossUI.style.display="none";updateUI();save()
 }
 
 function drawBackground(){
@@ -529,7 +529,7 @@ function endGame(){gameRunning=false;setMusicMode("game");resumeAudio();sounds.g
 function renderShop(){
  weaponList.innerHTML="";
  for(const id in weapons){const w=weapons[id],has=owned.includes(id),unlocked=maxLevel>=w.level,card=document.createElement("div");card.className="weapon";if(!unlocked)card.classList.add("locked");if(equipped===id)card.classList.add("equipped");
- let text,disabled=false;if(!unlocked){text="🔒 LIVELLO "+w.level+" RICHIESTO";disabled=true}else if(equipped===id){text="✅ EQUIPAGGIATA";disabled=true}else if(has)text="EQUIPAGGIA";else text="COMPRA 🪙 "+w.price;
+ let text,disabled=false;if(!unlocked){text="🔒 LIVELLO "+w.level+" RICHIESTO";disabled=true}else if(equipped===id){text="EQUIPAGGIATA";disabled=true}else if(has)text="EQUIPAGGIA";else text="COMPRA 🪙 "+w.price;
  card.innerHTML=`<div class="weaponTop"><div class="weaponName">${w.name}</div><div class="weaponLevel">⭐ LV. ${w.level}</div></div><div class="weaponInfo">💥 Danno: ${w.damage}<br>🔫 Proiettili: ${w.bullets}<br>⏱️ Velocità: ${w.cooldown}ms</div><button class="weaponButton" ${disabled?"disabled":""}>${text}</button>`;
  const button=card.querySelector("button");if(!disabled)button.addEventListener("click",()=>{resumeAudio();if(has){sounds.click();equipped=id;save();renderShop();updateUI();return}if(coins>=w.price){sounds.buy();coins-=w.price;owned.push(id);equipped=id;save();renderShop();updateUI();showToast(w.name+" acquistata!")}else{sounds.error();showToast("❌ Monete insufficienti")}});weaponList.appendChild(card)}
 }
